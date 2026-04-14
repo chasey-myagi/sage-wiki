@@ -1,0 +1,25 @@
+{
+  "name": "sage-wiki",
+  "version": "0.1.0",
+  "description": "Build and maintain an LLM-powered personal knowledge wiki. Implements the Karpathy LLM Wiki pattern with improvements from the community (v2 confidence scoring, supersession tracking, structured contradictions).",
+  "author": "chasey-myagi",
+  "license": "MIT",
+  "keywords": [
+    "wiki",
+    "knowledge-base",
+    "zettelkasten",
+    "second-brain",
+    "pkm",
+    "research",
+    "llm-wiki",
+    "karpathy"
+  ],
+  "skills": [
+    "skills/sage-init",
+    "skills/sage-ingest",
+    "skills/sage-query",
+    "skills/sage-lint",
+    "skills/sage-update"
+  ],
+  "repository": "https://github.com/chasey-myagi/sage-wiki"
+}
