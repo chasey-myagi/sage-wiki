@@ -1,17 +1,17 @@
 ---
-name: sage-ingest
+name: wiki-ingest
 description: >
   Add documents, articles, papers, URLs, or notes to an existing LLM wiki using the
-  sage-wiki pattern. Use this skill when the user wants to process source material
+  LLM Wiki pattern. Use this skill when the user wants to process source material
   into their wiki, add an article or paper to their knowledge base, or expand their
   wiki with new content.
   Trigger on: "ingest", "add to my wiki", "process this document", "add this article",
-  "read and save to wiki", "sage ingest", "put this in my wiki", "add this paper".
+  "read and save to wiki", "wiki ingest", "put this in my wiki", "add this paper".
   Also trigger when the user pastes a long document or shares a file path while an
   active wiki (SCHEMA.md) exists nearby — they probably want to ingest it.
 ---
 
-# sage-ingest — Add Sources to the Wiki
+# wiki-ingest — Add Sources to the Wiki
 
 Takes any source (file, URL, pasted text) and synthesizes it into interconnected
 wiki pages. The goal is not to summarize the source — it is to extract durable
@@ -20,7 +20,7 @@ knowledge and weave it into the existing wiki.
 ## Step 0 — Find the wiki
 
 Search upward from the current directory for `SCHEMA.md`. If not found, check
-`~/wikis/` as a fallback. If still not found, tell the user to run `sage-init`
+`~/wikis/` as a fallback. If still not found, tell the user to run `wiki-init`
 first and stop.
 
 Read `SCHEMA.md` fully before proceeding — it governs naming, frontmatter, and

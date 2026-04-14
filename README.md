@@ -14,17 +14,17 @@ Don't use the LLM as a search engine over your raw documents. Use it as a knowle
 
 | Skill | What it does |
 |-------|-------------|
-| `sage-init` | Bootstrap the wiki structure and `SCHEMA.md` |
-| `sage-ingest` | Process source documents into wiki pages |
-| `sage-query` | Answer questions from wiki content (not general knowledge) |
-| `sage-lint` | Health check: broken links, orphans, contradictions, gaps |
-| `sage-update` | Revise pages with source citations and downstream checks |
+| `wiki-init` | Bootstrap the wiki structure and `SCHEMA.md` |
+| `wiki-ingest` | Process source documents into wiki pages |
+| `wiki-query` | Answer questions from wiki content (not general knowledge) |
+| `wiki-lint` | Health check: broken links, orphans, contradictions, gaps |
+| `wiki-update` | Revise pages with source citations and downstream checks |
 
 ## Wiki structure
 
 ```
 your-wiki/
-├── SCHEMA.md          ← conventions file (created by sage-init)
+├── SCHEMA.md          ← conventions file (created by wiki-init)
 ├── raw/               ← immutable source documents
 ├── wiki/
 │   ├── pages/         ← flat slug-named Markdown pages
@@ -48,19 +48,19 @@ After installing, just describe what you want:
 
 ```
 "Set up a new wiki for my ML research"
-→ Claude uses sage-init
+→ Claude uses wiki-init
 
 "Ingest this paper into my wiki: raw/attention-is-all-you-need.pdf"
-→ Claude uses sage-ingest
+→ Claude uses wiki-ingest
 
 "What does my wiki say about sparse attention?"
-→ Claude uses sage-query
+→ Claude uses wiki-query
 
 "Run a health check on my wiki"
-→ Claude uses sage-lint
+→ Claude uses wiki-lint
 
 "The wiki is wrong about BERT — update it with this new paper"
-→ Claude uses sage-update
+→ Claude uses wiki-update
 ```
 
 ## License

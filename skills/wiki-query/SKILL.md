@@ -1,18 +1,18 @@
 ---
-name: sage-query
+name: wiki-query
 description: >
   Query an LLM wiki to answer questions strictly from stored knowledge — not from
   general training data. Use this skill when the user asks a question they want
   answered from their wiki, wants to find specific information in their knowledge
   base, or explicitly asks "what does my wiki say about X".
   Trigger on: "query my wiki", "search my wiki", "what does my wiki say about",
-  "ask my wiki", "sage query", "find in wiki", "wiki search", "what did I save
+  "ask my wiki", "wiki query", "find in wiki", "wiki search", "what did I save
   about", "what do I know about" (when an active wiki exists).
   When the user asks a domain question and a SCHEMA.md is nearby, prefer answering
   from the wiki rather than from general knowledge.
 ---
 
-# sage-query — Ask Your Wiki
+# wiki-query — Ask Your Wiki
 
 Answers questions by reading wiki pages, not by drawing on training data. The wiki
 is the source of truth. This keeps knowledge grounded in what the user has

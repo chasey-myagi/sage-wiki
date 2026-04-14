@@ -1,19 +1,19 @@
 ---
-name: sage-init
+name: wiki-init
 description: >
-  Initialize a new LLM-powered personal wiki using the Karpathy/sage-wiki pattern.
+  Initialize a new LLM-powered personal wiki using the Karpathy LLM Wiki pattern.
   Use this skill when a user wants to create, bootstrap, or set up a new knowledge
   base, personal wiki, second brain, zettelkasten, or research wiki.
   Trigger on phrases like: "create a wiki", "set up my wiki", "initialize a knowledge
-  base", "new wiki", "start a wiki", "wiki init", "sage init", "bootstrap wiki".
+  base", "new wiki", "start a wiki", "wiki init", "wiki init", "bootstrap wiki".
   If the user mentions wanting a persistent knowledge base that compounds over time,
   proactively suggest this skill even if they don't use the word "wiki".
 ---
 
-# sage-init — Bootstrap a New Wiki
+# wiki-init — Bootstrap a New Wiki
 
 Sets up the wiki directory structure and writes the convention file that all other
-sage-wiki skills depend on.
+wiki skills depend on.
 
 ## Pre-flight
 
@@ -113,14 +113,14 @@ _Last updated: <today>_
 
 ## Pages by tag
 
-_No pages yet. Run `sage-ingest` to add your first source._
+_No pages yet. Run `wiki-ingest` to add your first source._
 ```
 
 **wiki/overview.md**
 ```markdown
 # Domain Overview — <domain>
 
-_This file is maintained by `sage-lint`. It will be written after the first lint pass._
+_This file is maintained by `wiki-lint`. It will be written after the first lint pass._
 ```
 
 **wiki/log.md**
@@ -134,5 +134,5 @@ _This file is maintained by `sage-lint`. It will be written after the first lint
 
 Tell the user:
 - Where the wiki was created
-- To drop source files into `raw/` and run `sage-ingest` to start building it
+- To drop source files into `raw/` and run `wiki-ingest` to start building it
 - That `SCHEMA.md` is the config file — editing it changes behavior for all operations

@@ -1,17 +1,17 @@
 ---
-name: sage-lint
+name: wiki-lint
 description: >
   Run a health check on an LLM wiki to find broken links, orphaned pages,
   contradictions, stale content, and knowledge gaps. Use this skill for wiki
   maintenance, quality audits, or when the wiki feels disorganized or unreliable.
   Trigger on: "lint my wiki", "check my wiki", "audit wiki", "wiki health check",
-  "fix wiki links", "find contradictions", "sage lint", "wiki cleanup",
+  "fix wiki links", "find contradictions", "wiki lint", "wiki cleanup",
   "clean up wiki", "check for orphaned pages".
-  Proactively suggest running sage-lint after every 5–10 ingests even if the
+  Proactively suggest running wiki-lint after every 5–10 ingests even if the
   user hasn't asked — maintenance debt compounds faster than content debt.
 ---
 
-# sage-lint — Wiki Health Audit
+# wiki-lint — Wiki Health Audit
 
 Audits the wiki for structural and semantic issues, then writes a lint report
 page with actionable remediation steps. Runs without confirmation — this is a
@@ -20,7 +20,7 @@ read-then-write operation with no destructive edits.
 ## Step 0 — Find the wiki
 
 Search upward from the current directory for `SCHEMA.md`. Fallback: `~/wikis/`.
-If not found, tell the user to run `sage-init` first and stop.
+If not found, tell the user to run `wiki-init` first and stop.
 
 ## Step 1 — Inventory
 

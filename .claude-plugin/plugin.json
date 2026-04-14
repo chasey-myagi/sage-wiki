@@ -15,11 +15,11 @@
     "karpathy"
   ],
   "skills": [
-    "skills/sage-init",
-    "skills/sage-ingest",
-    "skills/sage-query",
-    "skills/sage-lint",
-    "skills/sage-update"
+    "skills/wiki-init",
+    "skills/wiki-ingest",
+    "skills/wiki-query",
+    "skills/wiki-lint",
+    "skills/wiki-update"
   ],
   "repository": "https://github.com/chasey-myagi/sage-wiki"
 }

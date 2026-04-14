@@ -1,17 +1,17 @@
 ---
-name: sage-update
+name: wiki-update
 description: >
   Revise existing wiki pages when knowledge changes, new sources contradict prior
   understanding, or a claim needs correction. Use this skill when the user has
   new information that updates or contradicts something already in the wiki,
   wants to correct a factual error, or has a new source that supersedes old content.
   Trigger on: "update my wiki", "correct wiki page", "revise wiki", "wiki update",
-  "sage update", "the wiki is wrong about", "supersede this", "this contradicts
+  "wiki update", "the wiki is wrong about", "supersede this", "this contradicts
   my wiki", "update the page about". Treat any user correction of a wiki claim
   as a trigger for this skill.
 ---
 
-# sage-update — Revise Wiki Pages
+# wiki-update — Revise Wiki Pages
 
 Updates one or more existing pages with new information, corrections, or
 supersessions. Every change requires a source — this is what keeps the wiki
