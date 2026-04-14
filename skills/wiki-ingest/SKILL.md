@@ -1,160 +1,206 @@
 ---
 name: wiki-ingest
 description: >
-  Add documents, articles, papers, URLs, or notes to an existing LLM wiki using the
-  LLM Wiki pattern. Use this skill when the user wants to process source material
-  into their wiki, add an article or paper to their knowledge base, or expand their
-  wiki with new content.
-  Trigger on: "ingest", "add to my wiki", "process this document", "add this article",
-  "read and save to wiki", "wiki ingest", "put this in my wiki", "add this paper".
-  Also trigger when the user pastes a long document or shares a file path while an
-  active wiki (SCHEMA.md) exists nearby — they probably want to ingest it.
+  Process unprocessed conversation session archives from raw/sessions/ into wiki
+  knowledge pages. This is Sage's primary knowledge accumulation mechanism.
+  Called automatically by DaemonLoop during WikiMaintenance (IDLE) sessions.
+  Manual trigger: "/wiki", "整理 wiki", "ingest sessions", "wiki ingest",
+  "process sessions", "update wiki from sessions".
+  Do NOT require user input or confirmation — this runs autonomously.
+  Source material is ALWAYS raw/sessions/ JSONL files, never user-provided documents.
+user-invokable: true
+args:
+  - name: limit
+    description: Maximum number of sessions to process in this run (default 5)
+    required: false
 ---
 
-# wiki-ingest — Add Sources to the Wiki
+# wiki-ingest — Extract Knowledge from Session Archives
 
-Takes any source (file, URL, pasted text) and synthesizes it into interconnected
-wiki pages. The goal is not to summarize the source — it is to extract durable
-knowledge and weave it into the existing wiki.
+Reads unprocessed conversation sessions and synthesizes durable domain knowledge
+into the wiki. The goal is not to summarize conversations — it is to extract
+**reusable patterns, confirmed API behaviors, recurring pitfalls, and decisions**
+that the Agent will encounter again.
 
-## Step 0 — Find the wiki
+This skill runs autonomously during WikiMaintenance. Do not pause for user input.
 
-Search upward from the current directory for `SCHEMA.md`. If not found, check
-`~/wikis/` as a fallback. If still not found, tell the user to run `wiki-init`
-first and stop.
+## Step 0 — Load wiki context
 
-Read `SCHEMA.md` fully before proceeding — it governs naming, frontmatter, and
-confidence levels.
+Read `SCHEMA.md` at workspace root. Understand the domain, page_type taxonomy,
+confidence rules, and log format.
 
-## Step 1 — Accept the source
+Read `wiki/index.md` to understand what knowledge already exists (avoid duplicating
+well-established pages; prefer updating them).
 
-The user will provide one of:
-- A file path (in `raw/` or elsewhere)
-- A URL
-- Pasted text
+## Step 1 — Find unprocessed sessions
 
-If the source is a file not yet in `raw/`, ask: "Should I copy this to `raw/<slug>.md`
-for archival?" — but don't block on it.
+List all `*.jsonl` files in `raw/sessions/`. A session is **processed** if its
+session ID appears in a `[... ingest | <session-id> ...` line in `wiki/log.md`.
 
-Read the source **completely** before writing anything.
+Steps:
+1. Read `wiki/log.md` → extract all session IDs already logged as ingested
+2. List `raw/sessions/*.jsonl` → cross-reference to find unprocessed ones
+3. If nothing unprocessed → log `[date] ingest | — | No new sessions` and stop
 
-## Step 2 — Surface key insights (WAIT for user)
+Process sessions in chronological order (oldest first, by filename timestamp).
+Limit to **at most 5 sessions per run** to avoid overwhelming a single context.
 
-Before touching any files, tell the user:
+## Step 2 — Read and parse each session
 
-> I've read `<source title>`. Here are 3–5 key insights I'd pull into the wiki:
->
-> 1. ...
-> 2. ...
-> 3. ...
->
-> Any you'd like to skip, reframe, or add?
+For each unprocessed session JSONL:
 
-Wait for their response. Adjust based on what they say. This step ensures the wiki
-reflects what the user actually cares about, not just what the LLM finds salient.
+1. Read the full file
+2. Reconstruct the conversation flow:
+   - `user` turns → what the user asked for
+   - `assistant` turns → what the Agent reasoned and did
+   - `tool` turns → actual tool inputs and outputs (this is the most valuable signal)
+3. Pay special attention to:
+   - **Tool errors** — what failed and what error message appeared (→ pitfall candidates)
+   - **Successful tool sequences** — workflows that achieved the goal (→ pattern candidates)
+   - **API responses** — specific fields, rate limits, pagination, error codes (→ api-ref candidates)
+   - **User corrections or decisions** — things the user explicitly specified (→ decision candidates)
+   - **Concepts explained** — domain terminology the Agent used or the user clarified (→ concept candidates)
 
-## Step 3 — Identify pages to create or update
+## Step 3 — Extract knowledge candidates
 
-Read `wiki/index.md` to see what already exists. For each insight:
+For each session, list what you extracted before writing anything:
 
-- **Existing page matches** → update it; note the new source in frontmatter
-- **No match** → create a new page
+```
+Session: <session-id>
+Domain: <what task this session was about>
 
-For new pages, pick a slug that is specific enough to be unambiguous but general
-enough to stay useful as the wiki grows (prefer `transformer-attention` over
-`bert-layer-12-self-attention`).
+Candidates:
+  [pitfall]   Rate limit on /calendar/v4/events: 50 req/min not documented in API docs
+  [pattern]   Batch calendar update: read all events first, then patch only changed ones
+  [api-ref]   POST /calendar/v4/events response: event_id field is stable across edits
+  [decision]  Always use user_access_token not tenant_access_token for calendar write
+```
+
+Cross-check each candidate against existing wiki/index.md:
+- **Existing page covers this** → update that page (add session to sources, increment session_count)
+- **No existing page** → create a new page
+
+Skip candidates that are too session-specific to be reusable (e.g., "today's meeting is at 3pm").
+Skip candidates that are already well-established (confidence: high, session_count ≥ 5) and
+unchanged — no need to add another citation to already-solid knowledge.
 
 ## Step 4 — Write or update pages
 
-Use this format for every page:
+### Page format (new pages)
 
 ```markdown
 ---
-title: "Concept Title"
-slug: concept-slug
-tags: [tag1, tag2]
-sources: [source-slug]
-confidence: high
+title: "Descriptive Title of the Knowledge"
+slug: descriptive-slug
+page_type: pitfall           # pitfall | pattern | api-ref | decision | concept | synthesis
+tags: [domain-tag, subtopic]
+sources: [session-id]
+session_count: 1
+confidence: medium
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 supersedes: []
 superseded-by: ""
 ---
 
-# Concept Title
+# Title
 
-One sentence that defines or positions this concept.
+One sentence: what this page is about, anchored in the domain.
 
-## What it is
+## What happened / What it is
 
-2–4 paragraphs of synthesis. Write for future-you in 6 months who has forgotten
-the source. Prioritize the "why it matters" over the "what it is" — the original
-source has the details; the wiki should have the understanding.
+2–4 paragraphs of synthesis. Write for yourself in 3 months who has forgotten
+this session. Prioritize **why it matters** and **when it applies** over
+describing what happened in the specific session.
 
-## Key claims
+## Key facts / Steps
 
-- Claim one (confidence: high) — [[supporting-page]] if related
-- Claim two (confidence: medium) — source attribution if needed
-- Claim three
+- Fact or step 1
+- Fact or step 2 (cite `[[related-slug]]` if a related page exists)
+
+## Watch out for / When NOT to use
+
+*(For pitfalls: what triggers this, and how to avoid it)*
+*(For patterns: edge cases where this pattern breaks)*
 
 ## Connections
 
-Links to related pages with a one-line note on *how* they relate:
-
-- [[related-slug]] — shares the same underlying mechanism
-- [[another-slug]] — generalizes this concept
+- [[related-slug]] — brief note on relationship
 
 ## Open questions
 
-Things this source raises but doesn't resolve. These are seeds for future ingests:
-
-- Question one
-- Question two
+Things this session raised but didn't fully resolve. Seeds for future ingests:
+- Question 1
 
 ## Sources
 
-- `raw/source-slug.md` — key quote or insight from this source
+- `session-id` — one-line summary of what this session revealed
 ```
 
-**Handling contradictions:** If a new insight contradicts an existing page, do not
-silently overwrite. Instead:
-1. Note the contradiction in the existing page under a `## Contradictions` section
-2. Set `confidence: medium` on the affected claims
-3. Note it in the ingest summary at the end
+### Updating existing pages
 
-**Handling supersession:** If the new source clearly supersedes an old page
-(e.g., a newer paper invalidates an older finding), set `superseded-by: new-slug`
-on the old page and `supersedes: [old-slug]` on the new one.
+When a new session corroborates an existing page:
+1. Add the session ID to `sources:` array
+2. Increment `session_count`
+3. Upgrade `confidence` if threshold is crossed: 1→medium, 3→high
+4. Update `updated:` date
+5. Add any new nuance to the content (new edge cases, additional API fields, etc.)
+
+When a new session **contradicts** an existing page:
+1. Add a `## Contradictions` section to the existing page
+2. Set `confidence: medium` on the affected claim
+3. Note the contradiction with the session ID: "session-xyz observed X, which contradicts the pattern above"
+4. Do NOT silently overwrite — the contradiction itself is valuable knowledge
+
+When a new session **supersedes** old knowledge (e.g., an API changed):
+1. Set `superseded-by: new-slug` on the old page
+2. Add `supersedes: [old-slug]` to the new page
+3. Add a `## Superseded` section to the old page explaining what changed
 
 ## Step 5 — Backlink audit
 
-This step is the most commonly skipped and the most important for keeping the
-wiki connected.
+After writing all pages for this ingest batch:
+1. Read `wiki/log.md` to find the 5 most recently written pages
+2. For each: does it mention a concept that now has a page? Add `[[slug]]` links
+3. Check tags overlap between new pages and existing pages — add Connections links
 
-After writing all new/updated pages, read the 10 most recently updated existing
-pages (use `wiki/log.md` to find them). For each:
-- If it mentions a concept that now has a page, add `[[slug]]` to its Connections section
-
-Also search `wiki/pages/` for pages whose tags overlap with the new material and
-add backlinks there too.
+This step keeps the wiki a graph, not a collection of isolated files.
 
 ## Step 6 — Update index and log
 
-**wiki/index.md:** Add new pages under their primary tag group. Format:
+**wiki/index.md:** Add new pages under their `page_type` section. Format:
 ```
-- [[slug]] — one-line description (created: YYYY-MM-DD)
+- [[slug]] — one-line description (created: YYYY-MM-DD, confidence: medium)
+```
+Update existing entries if confidence or description changed.
+
+**wiki/log.md:** Append one line per processed session:
+```
+[YYYY-MM-DD HH:MM] ingest | <session-id> → created: [slugs], updated: [slugs] | <note if contradiction or supersession>
 ```
 
-**wiki/log.md:** Append:
+## Step 7 — Report (brief)
+
+Output a compact summary (this goes to the DaemonLoop log, not the user):
 ```
-[YYYY-MM-DD HH:MM] ingest | <source-slug> → <new-slugs>, updated: <updated-slugs> | <contradiction note if any>
+Ingested 3 sessions.
+  Created: feishu-calendar-rate-limit (pitfall), batch-event-update (pattern)
+  Updated: feishu-auth-token-types (session_count: 1→2, confidence: medium→medium)
+  Contradictions: none
+  Open questions: 1 (feishu-recurring-event-behavior)
 ```
 
-## Step 7 — Report to user
+## Scope discipline
 
-Tell the user:
-- Pages created: list of slugs
-- Pages updated: list of slugs
-- Contradictions found: if any, with brief description
-- Notable connections discovered: surprising links to existing knowledge
-- Open questions worth addressing with a future ingest
+Do NOT ingest:
+- One-off user preferences (ingest to Memory, not Wiki)
+- Ephemeral task context ("today's meeting is at 3pm")
+- Decisions that were reversed in the same session
+- Tool failures caused by environment issues (network down, wrong credentials) — these are not domain knowledge
+
+DO ingest:
+- API behaviors that the Agent discovered empirically (not from docs)
+- Workflows that required non-obvious sequencing
+- Rate limits, pagination quirks, auth token scopes
+- Decisions made with explicit reasoning that will apply to future tasks
+- Concepts or terminology the user defined or corrected
